@@ -1,0 +1,6 @@
+@OnlineChatBack_HostAddress = http://localhost:5281
+
+GET {{OnlineChatBack_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
