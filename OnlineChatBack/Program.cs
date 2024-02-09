@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OnlineChatBack.Repositories;
+using Swashbuckle.AspNetCore.Filters;
 using System.Text;
 
 namespace OnlineChatBack
@@ -16,6 +17,19 @@ namespace OnlineChatBack
 
             // Add services to the container.
 
+            // cors
+            builder.Services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(policy =>
+                {
+                    policy.WithOrigins("http://localhost:3000");
+                    policy.WithMethods("GET", "POST");
+                    policy.AllowCredentials();
+                    policy.AllowAnyHeader();
+                });
+            });
+
+
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
@@ -27,6 +41,8 @@ namespace OnlineChatBack
                     Name = "Authorization",
                     Type = SecuritySchemeType.ApiKey
                 });
+
+                options.OperationFilter<SecurityRequirementsOperationFilter>();
             });
 
             builder.Services.AddSingleton<ChatRoomRepository>();
@@ -38,10 +54,10 @@ namespace OnlineChatBack
             {
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateLifetime = false,
+                    ValidateIssuerSigningKey = false,
                     ValidIssuer = builder.Configuration.GetSection("TokenOptions:Issuer").Value,
                     ValidAudience = builder.Configuration.GetSection("TokenOptions:Audience").Value,
                     IssuerSigningKey = new SymmetricSecurityKey(key)
@@ -57,10 +73,13 @@ namespace OnlineChatBack
                 app.UseSwaggerUI();
             }
 
+            app.UseCors();
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
 
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.MapControllers();
 
