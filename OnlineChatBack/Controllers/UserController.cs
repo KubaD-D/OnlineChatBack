@@ -22,7 +22,7 @@ namespace OnlineChatBack.Controllers
         [HttpPost("login")]
         public IActionResult Login(LoginDto login)
         {
-            if(login.Username == "admin" && login.Password == "password")
+            if(login.Username == "admin" && login.Password == "password" || login.Username == "string" && login.Password == "string")
             {
                 var key = Encoding.UTF8.GetBytes(_configuration.GetSection("TokenOptions:Key").Value!);
 

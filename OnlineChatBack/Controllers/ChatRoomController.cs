@@ -20,12 +20,11 @@ namespace OnlineChatBack.Controllers
         [HttpGet]
         public IActionResult GetChatRoom() 
         {
-            Console.WriteLine(HttpContext.User.Identity.Name);
+            //Console.WriteLine(HttpContext.User.Identity.Name);
 
             return Ok(_chatRoomRepository.ChatRooms);
         }
 
-        [AllowAnonymous]
         [HttpGet("{id}")]
         public IActionResult GetChatRoom(Guid id)
         {
@@ -39,7 +38,6 @@ namespace OnlineChatBack.Controllers
             return Ok(chatRoom);
         }
 
-        [AllowAnonymous]
         [HttpPost]
         public IActionResult PostChatRoom()
         {
@@ -51,6 +49,28 @@ namespace OnlineChatBack.Controllers
             }
 
             return CreatedAtAction(nameof(GetChatRoom), new {id =  chatRoom.Id}, chatRoom);
+        }
+
+        [HttpGet("{id}/messages")]
+        public IActionResult GetMessages(Guid id)
+        {
+            var chatRoom = _chatRoomRepository.GetChatRoom(id);
+
+            if( chatRoom == null)
+            {
+                return NotFound();
+            }
+
+            var currentUsername = HttpContext.User.Identity?.Name;
+
+            if(currentUsername == null || !chatRoom.Usernames.Contains(currentUsername))
+            {
+                return Unauthorized();
+            }
+
+            var messages = chatRoom.Messages;
+
+            return Ok(messages);
         }
     }
 }

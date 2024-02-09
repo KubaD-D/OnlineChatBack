@@ -22,7 +22,7 @@ namespace OnlineChatBack.Repositories
 
             foreach (var chatRoom in ChatRooms)
             {
-                if (chatRoom.Value.Users.Contains(user))
+                if (chatRoom.Value.Usernames.Contains(user.Username))
                 {
                     chatRooms.TryAdd(chatRoom.Key, chatRoom.Value);
                 }
