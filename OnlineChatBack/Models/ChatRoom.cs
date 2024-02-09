@@ -3,7 +3,13 @@
     public class ChatRoom
     {
         public Guid Id { get; set; }
-        public List<User> Users { get; set; } = new();
+        public HashSet<User> Users { get; set; }
+
+        public ChatRoom()
+        {
+            Id = Guid.NewGuid();
+            Users = new HashSet<User>();
+        }
 
         public void AddUser(User user)
         {
