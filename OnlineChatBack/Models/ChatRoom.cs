@@ -10,9 +10,16 @@
             Users.Add(user);
         }
 
-        public bool ContainsUser(User user)
+        public bool ContainsUserWithUsername(string username)
         {
-            return Users.Contains(user);
+            foreach (var user in Users)
+            {
+                if (user.Username == username)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }
