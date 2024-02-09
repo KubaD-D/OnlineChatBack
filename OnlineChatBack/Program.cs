@@ -76,8 +76,6 @@ namespace OnlineChatBack
             app.UseCors();
             app.UseHttpsRedirection();
 
-            app.UseAuthorization();
-
             app.UseAuthentication();
             app.UseAuthorization();
 
