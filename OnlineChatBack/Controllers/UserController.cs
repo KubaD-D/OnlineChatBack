@@ -33,7 +33,9 @@ namespace OnlineChatBack.Controllers
                         new Claim(ClaimTypes.Name, login.Username),
                     }),
                     Expires = DateTime.UtcNow.AddHours(1),
-                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
+                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256),
+                    Issuer = _configuration.GetSection("TokenOptions:Issuer").Value,
+                    Audience = _configuration.GetSection("TokenOptions:Audience").Value
                 };
 
                 var tokenHandler = new JwtSecurityTokenHandler();
