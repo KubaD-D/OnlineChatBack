@@ -22,10 +22,10 @@ namespace OnlineChatBack
             {
                 options.AddDefaultPolicy(policy =>
                 {
-                    policy.WithOrigins("http://localhost:3000");
-                    policy.WithMethods("GET", "POST");
-                    policy.AllowCredentials();
-                    policy.AllowAnyHeader();
+                    policy.WithOrigins("http://localhost:3000")
+                    .AllowAnyMethod()
+                    .AllowCredentials()
+                    .AllowAnyHeader();
                 });
             });
 
@@ -65,6 +65,7 @@ namespace OnlineChatBack
             });
 
             var app = builder.Build();
+            app.UseCors();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -73,7 +74,7 @@ namespace OnlineChatBack
                 app.UseSwaggerUI();
             }
 
-            app.UseCors();
+            
             app.UseHttpsRedirection();
 
             app.UseAuthentication();

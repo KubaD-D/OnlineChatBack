@@ -26,7 +26,17 @@ namespace OnlineChatBack.Controllers
             {
                 var token = GenerateJwtToken(login.Username);
 
-                return Ok(new { token });
+                var cookieOptions = new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.None,
+                    Expires = DateTimeOffset.Now.AddDays(1),
+                };
+
+                Response.Cookies.Append("token", token, cookieOptions);
+
+                return Ok();
             }
 
             return Unauthorized();
