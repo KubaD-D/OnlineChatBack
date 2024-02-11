@@ -60,8 +60,25 @@ namespace OnlineChatBack
                     ValidateIssuerSigningKey = true,
                     ValidIssuer = builder.Configuration.GetSection("TokenOptions:Issuer").Value,
                     ValidAudience = builder.Configuration.GetSection("TokenOptions:Audience").Value,
-                    IssuerSigningKey = new SymmetricSecurityKey(key)
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
                 };
+
+                options.SaveToken = true;
+                options.Events = new JwtBearerEvents();
+                options.Events.OnMessageReceived = context =>
+                {
+                    if (context.Request.Cookies.ContainsKey("token"))
+                    {
+                        context.Token = context.Request.Cookies["token"];
+                    }
+
+                    return Task.CompletedTask;
+                };
+            }).AddCookie(options =>
+            {
+                options.Cookie.HttpOnly = true;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.Cookie.SameSite = SameSiteMode.None;
             });
 
             var app = builder.Build();
