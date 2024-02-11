@@ -24,27 +24,34 @@ namespace OnlineChatBack.Controllers
         {
             if(login.Username == "admin" && login.Password == "password" || login.Username == "string" && login.Password == "string")
             {
-                var key = Encoding.UTF8.GetBytes(_configuration.GetSection("TokenOptions:Key").Value!);
+                var token = GenerateJwtToken(login.Username);
 
-                var tokenDescriptor = new SecurityTokenDescriptor
-                {
-                    Subject = new ClaimsIdentity(new[]
-                    {
-                        new Claim(ClaimTypes.Name, login.Username),
-                    }),
-                    Expires = DateTime.Now.AddHours(1),
-                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256),
-                    Issuer = _configuration.GetSection("TokenOptions:Issuer").Value,
-                    Audience = _configuration.GetSection("TokenOptions:Audience").Value
-                };
-
-                var tokenHandler = new JwtSecurityTokenHandler();
-                var token = tokenHandler.CreateToken(tokenDescriptor);
-
-                return Ok(new { token = tokenHandler.WriteToken(token) });
+                return Ok(new { token });
             }
 
             return Unauthorized();
+        }
+
+        private string GenerateJwtToken(string username)
+        {
+            var key = Encoding.UTF8.GetBytes(_configuration.GetSection("TokenOptions:Key").Value!);
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new[]
+                   {
+                        new Claim(ClaimTypes.Name, username),
+                    }),
+                Expires = DateTime.Now.AddDays(1),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256),
+                Issuer = _configuration.GetSection("TokenOptions:Issuer").Value,
+                Audience = _configuration.GetSection("TokenOptions:Audience").Value
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+
+            return tokenHandler.WriteToken(token);
         }
     }
 }

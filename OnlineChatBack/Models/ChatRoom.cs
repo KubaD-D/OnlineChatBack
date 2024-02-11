@@ -18,24 +18,28 @@
 
             Messages.Add(new Message {
                 Sender = "Sender 1",
+                TimeSent = DateTime.Now.ToString("yyyy.MM.dd HH:mm"),
                 Content = "This is a nice message"
             });
 
             Messages.Add(new Message
             {
                 Sender = "Sender 2",
+                TimeSent = DateTime.Now.ToString("yyyy.MM.dd HH:mm"),
                 Content = "dgsgsadgdds"
             });
 
             Messages.Add(new Message
             {
                 Sender = "Sender 1",
+                TimeSent = DateTime.Now.ToString("yyyy.MM.dd HH:mm"),
                 Content = "Great"
             });
 
             Messages.Add(new Message
             {
                 Sender = "Sender 2",
+                TimeSent = DateTime.Now.ToString("yyyy.MM.dd HH:mm"),
                 Content = "Yeah this is super great isn't it"
             });
         }
