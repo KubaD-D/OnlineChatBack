@@ -93,6 +93,11 @@ namespace OnlineChatBack.Controllers
                 return BadRequest();
             }
 
+            if(!chatRoom.Usernames.Contains(sender))
+            {
+                return Unauthorized();
+            }
+
             var newMessage = new Message
             {
                 Sender = sender,
@@ -105,5 +110,87 @@ namespace OnlineChatBack.Controllers
 
             return Ok();
         }
+
+        [HttpPost("{id}/add-user")]
+        public async Task<IActionResult> AddUser(Guid id, UsernameDto usernameRequest)
+        {
+            var chatRoom = await _applicationDbContext.ChatRooms.FindAsync(id);
+            var requestingUser = HttpContext.User.Identity?.Name;
+
+            if(chatRoom == null || requestingUser == null)
+            {
+                return BadRequest();
+            }
+
+            if(requestingUser != chatRoom.Owner)
+            {
+                return Unauthorized();
+            }
+
+            if(chatRoom.Usernames.Contains(usernameRequest.Username))
+            {
+                return Conflict();
+            }
+
+            chatRoom.Usernames.Add(usernameRequest.Username);
+            await _applicationDbContext.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [HttpPost("{id}/remove-user")]
+        public async Task<IActionResult> RemoveUser(Guid id, UsernameDto usernameRequest)
+        {
+            var chatRoom = await _applicationDbContext.ChatRooms.FindAsync(id);
+            var requestingUser = HttpContext.User.Identity?.Name;
+
+            if (chatRoom == null || requestingUser == null)
+            {
+                return BadRequest();
+            }
+
+            if (requestingUser != chatRoom.Owner)
+            {
+                return Unauthorized();
+            }
+
+            if(usernameRequest.Username == chatRoom.Owner)
+            {
+                return Forbid();
+            }
+
+            if(!chatRoom.Usernames.Remove(usernameRequest.Username))
+            {
+                return NotFound();
+            }
+
+            await _applicationDbContext.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteChatRoom(Guid id)
+        {
+            var chatRoom = await _applicationDbContext.ChatRooms.FindAsync(id);
+            var requestingUser = HttpContext.User.Identity?.Name;
+
+            if (chatRoom == null || requestingUser == null)
+            {
+                return BadRequest();
+            }
+
+            if (requestingUser != chatRoom.Owner)
+            {
+                return Unauthorized();
+            }
+
+            _applicationDbContext.ChatRooms.Remove(chatRoom);
+            await _applicationDbContext.SaveChangesAsync();
+
+            return Ok();
+        }
+
+
     }
 }
