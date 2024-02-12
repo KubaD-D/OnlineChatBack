@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using OnlineChatBack.Dtos;
 using OnlineChatBack.Models;
 using OnlineChatBack.Repositories;
@@ -13,17 +14,17 @@ namespace OnlineChatBack.Controllers
     [ApiController]
     public class ChatRoomController : ControllerBase
     {
-        private readonly ChatRoomRepository _chatRoomRepository;
+        private readonly ApplicationDbContext _applicationDbContext;
 
-        public ChatRoomController(ChatRoomRepository chatRoomRepository)
+        public ChatRoomController(ApplicationDbContext applicationDbContext)
         {
-            _chatRoomRepository = chatRoomRepository;
+            _applicationDbContext = applicationDbContext;
         }
 
         [HttpGet]
         public async Task<ActionResult<List<ChatRoom>>> GetChatRoom() 
         {
-            var chatRooms = _chatRoomRepository.ChatRooms.Values.ToList();
+            var chatRooms = await _applicationDbContext.ChatRooms.ToListAsync();
 
             return Ok(chatRooms);
         }
@@ -31,7 +32,7 @@ namespace OnlineChatBack.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<ChatRoom>> GetChatRoom(Guid id)
         {
-            var chatRoom = _chatRoomRepository.GetChatRoom(id);
+            var chatRoom = await _applicationDbContext.ChatRooms.FindAsync(id);
 
             if(chatRoom == null)
             {
@@ -52,7 +53,9 @@ namespace OnlineChatBack.Controllers
             }
 
             var chatRoom = new ChatRoom(username);
-            _chatRoomRepository.ChatRooms.Add(chatRoom.Id, chatRoom);
+
+            _applicationDbContext.ChatRooms.Add(chatRoom);
+            await _applicationDbContext.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetChatRoom), new {id =  chatRoom.Id}, chatRoom);
         }
@@ -60,7 +63,7 @@ namespace OnlineChatBack.Controllers
         [HttpGet("{id}/messages")]
         public async Task<ActionResult<List<Message>>> GetMessages(Guid id)
         {
-            var chatRoom = _chatRoomRepository.GetChatRoom(id);
+            var chatRoom = await _applicationDbContext.ChatRooms.Include(cr => cr.Messages).FirstOrDefaultAsync(cr => cr.Id == id);
 
             if( chatRoom == null)
             {
@@ -82,10 +85,10 @@ namespace OnlineChatBack.Controllers
         [HttpPost("{id}/send-message")]
         public async Task<IActionResult> SendMessage(Guid id, SendMessageDto message)
         {
-            var chatRoom = _chatRoomRepository.GetChatRoom(id);
             var sender = HttpContext.User.Identity?.Name;
+            var chatRoom = await _applicationDbContext.ChatRooms.Include(cr => cr.Messages).FirstOrDefaultAsync(cr => cr.Id == id);
 
-            if (chatRoom == null || sender == null)
+            if (sender == null || chatRoom == null)
             {
                 return BadRequest();
             }
@@ -98,6 +101,7 @@ namespace OnlineChatBack.Controllers
             };
 
             chatRoom.Messages.Add(newMessage);
+            await _applicationDbContext.SaveChangesAsync();
 
             return Ok();
         }

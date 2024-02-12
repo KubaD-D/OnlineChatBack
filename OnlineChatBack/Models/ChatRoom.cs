@@ -6,13 +6,13 @@ namespace OnlineChatBack.Models
     {
         public Guid Id { get; set; }
         public string Owner { get; set; }   
-        public HashSet<string> Usernames { get; set; }
+        public List<string> Usernames { get; set; }
         public List<Message> Messages { get; set; }
 
         public ChatRoom(string owner)
         {
             Id = Guid.NewGuid();
-            Usernames = new HashSet<string>();
+            Usernames = new List<string>();
             Messages = new List<Message>();
             Owner = owner;
             Usernames.Add(owner);
