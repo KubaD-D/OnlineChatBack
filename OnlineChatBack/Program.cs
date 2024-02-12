@@ -1,8 +1,10 @@
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using OnlineChatBack.Models;
 using OnlineChatBack.Repositories;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text;
@@ -31,6 +33,12 @@ namespace OnlineChatBack
 
 
             builder.Services.AddControllers();
+
+            builder.Services.AddDbContext<UserDbContext>(options =>
+            {
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+            });
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(options =>
