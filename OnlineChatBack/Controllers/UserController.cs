@@ -106,11 +106,6 @@ namespace OnlineChatBack.Controllers
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh()
         {
-            if(!ModelState.IsValid)
-            {
-                return BadRequest();
-            }
-
             var expiredToken = GetBearerToken();
 
             if(expiredToken == null)
@@ -137,6 +132,30 @@ namespace OnlineChatBack.Controllers
             var token = GenerateJwtToken(principal.Identity.Name);
 
             return Ok(new { token });
+        }
+
+        [Authorize]
+        [HttpDelete("revoke")]
+        public async Task<IActionResult> Revoke()
+        {
+            var username = HttpContext.User.Identity?.Name;
+
+            if(username == null)
+            {
+                return Unauthorized();
+            }
+
+            var user = await _userDbContext.Users.FirstOrDefaultAsync(user => user.Username == username);
+
+            if(user == null)
+            {
+                return Unauthorized();
+            }
+
+            user.RefreshToken = null;
+            await _userDbContext.SaveChangesAsync();
+
+            return Ok();
         }
 
         private string? GetBearerToken()
