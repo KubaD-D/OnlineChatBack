@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -86,9 +87,87 @@ namespace OnlineChatBack.Controllers
             user.RefreshTokenExpiry = refreshTokenExpiry;
             await _userDbContext.SaveChangesAsync();
 
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = refreshTokenExpiry
+            };
+
+            Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
+
             var jwtToken = GenerateJwtToken(user.Username);
 
             return Ok(new { jwtToken, refreshToken });
+        }
+
+        [Authorize]
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh()
+        {
+            if(!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+
+            var expiredToken = GetBearerToken();
+
+            if(expiredToken == null)
+            {
+                return BadRequest();
+            }
+
+            var principal = GetPrincipalFromExpiredToken(expiredToken);
+
+            if(principal?.Identity?.Name == null)
+            {
+                return Unauthorized();
+            }
+
+            var user = await _userDbContext.Users.FirstOrDefaultAsync(user =>  user.Username == principal.Identity.Name);
+
+            var refreshToken = HttpContext.Request.Cookies["refreshToken"];
+
+            if(user == null || refreshToken == null || user.RefreshToken != refreshToken || user.RefreshTokenExpiry < DateTime.UtcNow)
+            {
+                return Unauthorized();
+            }
+
+            var token = GenerateJwtToken(principal.Identity.Name);
+
+            return Ok(new { token });
+        }
+
+        private string? GetBearerToken()
+        {
+            string? header = HttpContext.Request.Headers["Authorization"];
+
+            if(!string.IsNullOrEmpty(header) && header.StartsWith("Bearer "))
+            {
+                string token = header.Substring("Bearer ".Length).Trim();
+                return token;
+            }
+
+            return null;
+        }
+
+        private ClaimsPrincipal? GetPrincipalFromExpiredToken(string token)
+        {
+            var key = Encoding.UTF8.GetBytes(_configuration.GetSection("TokenOptions:Key").Value!);
+
+            var validation = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = false,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = _configuration.GetSection("TokenOptions:Issuer").Value,
+                ValidAudience = _configuration.GetSection("TokenOptions:Audience").Value,
+                IssuerSigningKey = new SymmetricSecurityKey(key)
+            };
+
+            return new JwtSecurityTokenHandler().ValidateToken(token, validation, out _);
         }
 
         private static string GenerateRefreshToken()
