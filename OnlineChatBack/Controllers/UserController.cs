@@ -17,12 +17,12 @@ namespace OnlineChatBack.Controllers
     public class UserController : ControllerBase
     {
         private readonly IConfiguration _configuration;
-        private readonly UserDbContext _userDbContext;
+        private readonly ApplicationDbContext _applicationDbContext;
 
-        public UserController(IConfiguration configuration, UserDbContext userDbContext)
+        public UserController(IConfiguration configuration, ApplicationDbContext applicationDbContext)
         {
             _configuration = configuration;
-            _userDbContext = userDbContext;
+            _applicationDbContext = applicationDbContext;
         }
 
         [HttpPost("register")]
@@ -33,12 +33,12 @@ namespace OnlineChatBack.Controllers
                 return BadRequest();
             }
 
-            if(await _userDbContext.Users.AnyAsync(user => user.Username == register.Username))
+            if(await _applicationDbContext.Users.AnyAsync(user => user.Username == register.Username))
             {
                 return Conflict("User with this username already exists");
             }
 
-            if(await _userDbContext.Users.AnyAsync(user => user.Email == register.Email))
+            if(await _applicationDbContext.Users.AnyAsync(user => user.Email == register.Email))
             {
                 return Conflict("An account with this email address already exists");
             }
@@ -53,8 +53,8 @@ namespace OnlineChatBack.Controllers
                 PasswordHash = passwordHash
             };
 
-            await _userDbContext.Users.AddAsync(newUser);
-            await _userDbContext.SaveChangesAsync();
+            await _applicationDbContext.Users.AddAsync(newUser);
+            await _applicationDbContext.SaveChangesAsync();
 
             return Ok();
 
@@ -68,7 +68,7 @@ namespace OnlineChatBack.Controllers
                 return BadRequest();
             }
 
-            var user = await _userDbContext.Users.FirstOrDefaultAsync(user => user.Username == login.Username);
+            var user = await _applicationDbContext.Users.FirstOrDefaultAsync(user => user.Username == login.Username);
 
             if(user == null)
             {
@@ -85,7 +85,7 @@ namespace OnlineChatBack.Controllers
 
             user.RefreshToken = refreshToken;
             user.RefreshTokenExpiry = refreshTokenExpiry;
-            await _userDbContext.SaveChangesAsync();
+            await _applicationDbContext.SaveChangesAsync();
 
             var cookieOptions = new CookieOptions
             {
@@ -120,7 +120,7 @@ namespace OnlineChatBack.Controllers
                 return Unauthorized();
             }
 
-            var user = await _userDbContext.Users.FirstOrDefaultAsync(user =>  user.Username == principal.Identity.Name);
+            var user = await _applicationDbContext.Users.FirstOrDefaultAsync(user =>  user.Username == principal.Identity.Name);
 
             var refreshToken = HttpContext.Request.Cookies["refreshToken"];
 
@@ -145,7 +145,7 @@ namespace OnlineChatBack.Controllers
                 return Unauthorized();
             }
 
-            var user = await _userDbContext.Users.FirstOrDefaultAsync(user => user.Username == username);
+            var user = await _applicationDbContext.Users.FirstOrDefaultAsync(user => user.Username == username);
 
             if(user == null)
             {
@@ -153,7 +153,7 @@ namespace OnlineChatBack.Controllers
             }
 
             user.RefreshToken = null;
-            await _userDbContext.SaveChangesAsync();
+            await _applicationDbContext.SaveChangesAsync();
 
             return Ok();
         }

@@ -38,7 +38,7 @@ namespace OnlineChatBack
                 options.SerializerSettings.DateFormatString = "yyyy.MM.dd HH:mm";
             });
 
-            builder.Services.AddDbContext<UserDbContext>(options =>
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             });

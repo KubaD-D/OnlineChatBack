@@ -11,7 +11,7 @@ using OnlineChatBack.Models;
 
 namespace OnlineChatBack.Migrations
 {
-    [DbContext(typeof(UserDbContext))]
+    [DbContext(typeof(ApplicationDbContext))]
     [Migration("20240212184842_FirstMigration")]
     partial class FirstMigration
     {

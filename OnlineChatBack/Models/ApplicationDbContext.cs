@@ -2,11 +2,11 @@
 
 namespace OnlineChatBack.Models
 {
-    public class UserDbContext : DbContext
+    public class ApplicationDbContext : DbContext
     {
         public DbSet<User> Users { get; set; }
 
-        public UserDbContext(DbContextOptions<UserDbContext> options) : base(options)
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
             
         }
