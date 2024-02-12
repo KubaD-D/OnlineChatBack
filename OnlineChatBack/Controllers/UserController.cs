@@ -6,6 +6,7 @@ using OnlineChatBack.Dtos;
 using OnlineChatBack.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace OnlineChatBack.Controllers
@@ -61,24 +62,41 @@ namespace OnlineChatBack.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDto login)
         {
-            if(login.Username == "admin" && login.Password == "password" || login.Username == "string" && login.Password == "string")
+            if(!ModelState.IsValid)
             {
-                var token = GenerateJwtToken(login.Username);
-
-                var cookieOptions = new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.None,
-                    Expires = DateTimeOffset.Now.AddDays(1),
-                };
-
-                Response.Cookies.Append("token", token, cookieOptions);
-
-                return Ok();
+                return BadRequest();
             }
 
-            return Unauthorized();
+            var user = await _userDbContext.Users.FirstOrDefaultAsync(user => user.Username == login.Username);
+
+            if(user == null)
+            {
+                return Unauthorized();
+            }
+
+            if(!BCrypt.Net.BCrypt.EnhancedVerify(login.Password, user.PasswordHash))
+            {
+                return Unauthorized();
+            }
+
+            var refreshToken = GenerateRefreshToken();
+            var refreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiry = refreshTokenExpiry;
+            await _userDbContext.SaveChangesAsync();
+
+            var jwtToken = GenerateJwtToken(user.Username);
+
+            return Ok(new { jwtToken, refreshToken });
+        }
+
+        private static string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[64];
+            using var generator = RandomNumberGenerator.Create();
+            generator.GetBytes(randomNumber);
+            return Convert.ToBase64String(randomNumber);
         }
 
         private string GenerateJwtToken(string username)
@@ -91,7 +109,7 @@ namespace OnlineChatBack.Controllers
                    {
                         new Claim(ClaimTypes.Name, username),
                     }),
-                Expires = DateTime.Now.AddDays(1),
+                Expires = DateTime.UtcNow.AddHours(1),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256),
                 Issuer = _configuration.GetSection("TokenOptions:Issuer").Value,
                 Audience = _configuration.GetSection("TokenOptions:Audience").Value
