@@ -32,7 +32,11 @@ namespace OnlineChatBack
             });
 
 
-            builder.Services.AddControllers();
+            builder.Services.AddControllers().AddNewtonsoftJson(options =>
+            {
+                options.SerializerSettings.DateTimeZoneHandling = Newtonsoft.Json.DateTimeZoneHandling.Utc;
+                options.SerializerSettings.DateFormatString = "yyyy.MM.dd HH:mm";
+            });
 
             builder.Services.AddDbContext<UserDbContext>(options =>
             {

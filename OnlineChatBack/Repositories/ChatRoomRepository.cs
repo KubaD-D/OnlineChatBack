@@ -30,14 +30,5 @@ namespace OnlineChatBack.Repositories
 
             return chatRooms;
         }
-
-        public ChatRoom CreateChatRoom()
-        {
-            var chatRoom = new ChatRoom();
-
-            ChatRooms.TryAdd(chatRoom.Id, chatRoom);
-
-            return chatRoom;
-        }
     }
 }
