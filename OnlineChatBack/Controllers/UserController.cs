@@ -90,7 +90,7 @@ namespace OnlineChatBack.Controllers
             user.RefreshTokenExpiry = refreshTokenExpiry;
             await _applicationDbContext.SaveChangesAsync();
 
-            var cookieOptions = new CookieOptions
+            var refreshCookieOptions = new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
@@ -98,17 +98,28 @@ namespace OnlineChatBack.Controllers
                 Expires = refreshTokenExpiry
             };
 
-            Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
+            Response.Cookies.Append("refreshToken", refreshToken, refreshCookieOptions);
 
             var jwtToken = GenerateJwtToken(user.Username);
 
-            return Ok(new { jwtToken });
+            var jwtCookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTime.UtcNow.AddDays(1)
+            };
+
+            Response.Cookies.Append("jwtToken", jwtToken, jwtCookieOptions);
+
+            return Ok();
         }
 
+        [AllowAnonymous]
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh()
         {
-            var expiredToken = GetBearerToken();
+            var expiredToken = HttpContext.Request.Cookies["jwtToken"];
 
             if(expiredToken == null)
             {
@@ -131,9 +142,19 @@ namespace OnlineChatBack.Controllers
                 return Unauthorized();
             }
 
-            var token = GenerateJwtToken(principal.Identity.Name);
+            var jwtToken = GenerateJwtToken(principal.Identity.Name);
 
-            return Ok(new { token });
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                Expires = DateTime.UtcNow.AddDays(1)
+            };
+
+            Response.Cookies.Append("jwtToken", jwtToken, cookieOptions);
+
+            return Ok();
         }
 
         [HttpDelete("revoke")]

@@ -49,7 +49,7 @@ namespace OnlineChatBack
             {
                 options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
                 {
-                    In = ParameterLocation.Header,
+                    In = ParameterLocation.Cookie,
                     Name = "Authorization",
                     Type = SecuritySchemeType.ApiKey
                 });
@@ -94,9 +94,26 @@ namespace OnlineChatBack
                             context.Fail("Unauthorized");
                         }
 
+                    },
+
+                    OnMessageReceived = context =>
+                    {
+                        if(context.Request.Cookies.ContainsKey("jwtToken"))
+                        {
+                            context.Token = context.Request.Cookies["jwtToken"];
+                        }
+
+                        return Task.CompletedTask;
                     }
                 };
 
+                options.SaveToken = true;
+
+            }).AddCookie(options =>
+            {
+                options.Cookie.HttpOnly = true;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.Cookie.SameSite = SameSiteMode.None;
             });
 
             var app = builder.Build();
