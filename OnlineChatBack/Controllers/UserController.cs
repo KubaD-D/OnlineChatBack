@@ -102,7 +102,7 @@ namespace OnlineChatBack.Controllers
 
             var jwtToken = GenerateJwtToken(user.Username);
 
-            return Ok(new { jwtToken, refreshToken });
+            return Ok(new { jwtToken });
         }
 
         [HttpPost("refresh")]

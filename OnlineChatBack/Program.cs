@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OnlineChatBack.Models;
-using OnlineChatBack.Repositories;
 using Swashbuckle.AspNetCore.Filters;
 using System.Security.Claims;
 using System.Text;

@@ -1,11 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OnlineChatBack.Dtos;
 using OnlineChatBack.Models;
-using OnlineChatBack.Repositories;
-using System.Net.WebSockets;
 
 namespace OnlineChatBack.Controllers
 {
