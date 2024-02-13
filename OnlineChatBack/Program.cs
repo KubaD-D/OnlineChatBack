@@ -7,6 +7,7 @@ using Microsoft.OpenApi.Models;
 using OnlineChatBack.Models;
 using OnlineChatBack.Repositories;
 using Swashbuckle.AspNetCore.Filters;
+using System.Security.Claims;
 using System.Text;
 
 namespace OnlineChatBack
@@ -74,6 +75,31 @@ namespace OnlineChatBack
                     ValidAudience = builder.Configuration.GetSection("TokenOptions:Audience").Value,
                     IssuerSigningKey = new SymmetricSecurityKey(key),
                 };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnTokenValidated = async context =>
+                    {
+                        var claimsPrincipal = context.Principal;
+                        var username = claimsPrincipal?.FindFirstValue(ClaimTypes.Name);
+
+                        if(username == null)
+                        {
+                            context.Fail("Bad request");
+                        }
+
+                        var dbContext = context.HttpContext.RequestServices.GetRequiredService<ApplicationDbContext>();
+
+                        var isUserInDb = await dbContext.Users.AnyAsync(user => user.Username == username);
+
+                        if(!isUserInDb)
+                        {
+                            context.Fail("Unauthorized");
+                        }
+
+                    }
+                };
+
             });
 
             var app = builder.Build();
