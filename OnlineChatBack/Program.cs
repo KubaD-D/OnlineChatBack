@@ -58,8 +58,6 @@ namespace OnlineChatBack
                 options.OperationFilter<SecurityRequirementsOperationFilter>();
             });
 
-            builder.Services.AddSingleton<ChatRoomRepository>();
-
             // JWT
             var key = Encoding.UTF8.GetBytes(builder.Configuration.GetSection("TokenOptions:Key").Value!);
 
