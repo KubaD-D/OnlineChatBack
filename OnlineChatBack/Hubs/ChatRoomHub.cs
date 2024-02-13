@@ -10,16 +10,10 @@ namespace OnlineChatBack.Hubs
     [Authorize]
     public class ChatRoomHub : Hub
     {
-<<<<<<< HEAD
         private readonly ApplicationDbContext _applicationDbContext;
         public ChatRoomHub(ApplicationDbContext applicationDbContext)
         {
             _applicationDbContext = applicationDbContext;
-=======
-        public ChatRoomHub()
-        {
-            
->>>>>>> 8b1e2841da108a8389040644f04b08b7f86f1692
         }
 
         public async Task JoinRoom(Guid chatRoomId)
