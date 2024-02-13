@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-using OnlineChatBack.Repositories;
 
 namespace OnlineChatBack.Hubs
 {
@@ -11,10 +10,9 @@ namespace OnlineChatBack.Hubs
 
     public class ChatRoomHub : Hub
     {
-        private readonly ChatRoomRepository _chatRoomRepository;
-        public ChatRoomHub(ChatRoomRepository chatRoomRepository)
+        public ChatRoomHub()
         {
-            _chatRoomRepository = chatRoomRepository;
+            
         }
 
         /*
