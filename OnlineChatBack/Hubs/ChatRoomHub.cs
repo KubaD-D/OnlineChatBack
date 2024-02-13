@@ -1,37 +1,60 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using OnlineChatBack.Dtos;
+using OnlineChatBack.Models;
 
 namespace OnlineChatBack.Hubs
 {
-    public class UserConnection
-    {
-        public required string Username { get; set; }
-        public Guid ChatRoomId { get; set; }
-    }
 
+    [Authorize]
     public class ChatRoomHub : Hub
     {
-        public ChatRoomHub()
+        private readonly ApplicationDbContext _applicationDbContext;
+        public ChatRoomHub(ApplicationDbContext applicationDbContext)
         {
-            
+            _applicationDbContext = applicationDbContext;
         }
 
-        /*
-        public async Task JoinRoom(UserConnection userConnection)
+        public async Task JoinRoom(Guid chatRoomId)
         {
-            var chatRoom = _chatRoomRepository.GetChatRoom(userConnection.ChatRoomId);
+            var username = Context.User?.Identity?.Name;
 
-            if(chatRoom == null)
+            if(username == null)
             {
-                await Clients.Client(Context.ConnectionId).SendAsync("ChatRoomNotFound", userConnection.ChatRoomId);
-            }
-            else if(!chatRoom.ContainsUserWithUsername(userConnection.Username))
-            {
-                await Clients.Client(Context.ConnectionId).SendAsync("ChatRoomUnauthorizedUser", userConnection.ChatRoomId);
+                return;
             }
 
-            await Groups.AddToGroupAsync(Context.ConnectionId, userConnection.ChatRoomId.ToString());
-            await Clients.Client(Context.ConnectionId).SendAsync("ChatRoomJoined", userConnection.ChatRoomId);
+            var chatRoom = await _applicationDbContext.ChatRooms.FindAsync(chatRoomId);
+
+            if(chatRoom == null || !chatRoom.Usernames.Contains(username))
+            {
+                return;
+            }
+
+            await Groups.AddToGroupAsync(Context.ConnectionId, chatRoom.Id.ToString());
+            await Clients.Group(chatRoomId.ToString()).SendAsync("UserJoined", username);
         }
-        */
+
+        public async Task SendMessage(Guid chatRoomId, string message)
+        {
+            var username = Context.User?.Identity?.Name;
+
+            if (username == null)
+            {
+                return;
+            }
+
+            var chatRoom = await _applicationDbContext.ChatRooms.FindAsync(chatRoomId);
+
+            if (chatRoom == null || !chatRoom.Usernames.Contains(username))
+            {
+                return;
+            }
+
+            var timeSent = DateTime.Now.ToString("yyyy.MM.dd HH:mm");
+
+            await Clients.Group(chatRoomId.ToString()).SendAsync("ReceiveMessage", new { Sender = username, TimeSent = timeSent, Content = message });
+        }
     }
 }
