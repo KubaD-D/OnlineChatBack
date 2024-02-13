@@ -112,7 +112,7 @@ namespace OnlineChatBack.Controllers
 
             Response.Cookies.Append("jwtToken", jwtToken, jwtCookieOptions);
 
-            return Ok();
+            return Ok(new { user.Username });
         }
 
         [AllowAnonymous]
@@ -154,7 +154,7 @@ namespace OnlineChatBack.Controllers
 
             Response.Cookies.Append("jwtToken", jwtToken, cookieOptions);
 
-            return Ok();
+            return Ok(new { Username = principal.Identity.Name });
         }
 
         [HttpDelete("revoke")]
