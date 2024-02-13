@@ -17,6 +17,7 @@ namespace OnlineChatBack.Hubs
             _chatRoomRepository = chatRoomRepository;
         }
 
+        /*
         public async Task JoinRoom(UserConnection userConnection)
         {
             var chatRoom = _chatRoomRepository.GetChatRoom(userConnection.ChatRoomId);
@@ -33,5 +34,6 @@ namespace OnlineChatBack.Hubs
             await Groups.AddToGroupAsync(Context.ConnectionId, userConnection.ChatRoomId.ToString());
             await Clients.Client(Context.ConnectionId).SendAsync("ChatRoomJoined", userConnection.ChatRoomId);
         }
+        */
     }
 }

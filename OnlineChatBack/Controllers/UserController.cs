@@ -12,6 +12,7 @@ using System.Text;
 
 namespace OnlineChatBack.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
@@ -25,6 +26,7 @@ namespace OnlineChatBack.Controllers
             _applicationDbContext = applicationDbContext;
         }
 
+        [AllowAnonymous]
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterDto register)
         {
@@ -60,6 +62,7 @@ namespace OnlineChatBack.Controllers
 
         }
 
+        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDto login)
         {
@@ -102,7 +105,6 @@ namespace OnlineChatBack.Controllers
             return Ok(new { jwtToken, refreshToken });
         }
 
-        [Authorize]
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh()
         {
@@ -134,7 +136,6 @@ namespace OnlineChatBack.Controllers
             return Ok(new { token });
         }
 
-        [Authorize]
         [HttpDelete("revoke")]
         public async Task<IActionResult> Revoke()
         {
@@ -153,6 +154,34 @@ namespace OnlineChatBack.Controllers
             }
 
             user.RefreshToken = null;
+            await _applicationDbContext.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        [HttpDelete("delete")]
+        public async Task<IActionResult> Delete(PasswordDto request)
+        {
+            var username = HttpContext.User.Identity?.Name;
+
+            if(username == null)
+            {
+                return BadRequest();
+            }
+
+            var user = _applicationDbContext.Users.FirstOrDefault(user => user.Username == username);
+
+            if(user == null)
+            {
+                return NotFound();
+            }
+
+            if(!BCrypt.Net.BCrypt.EnhancedVerify(request.Password, user.PasswordHash))
+            {
+                return Unauthorized();
+            }
+
+            _applicationDbContext.Remove(user);
             await _applicationDbContext.SaveChangesAsync();
 
             return Ok();

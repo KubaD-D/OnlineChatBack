@@ -22,9 +22,16 @@ namespace OnlineChatBack.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<ChatRoom>>> GetChatRoom() 
+        public async Task<ActionResult<List<ChatRoom>>> GetChatRooms() 
         {
-            var chatRooms = await _applicationDbContext.ChatRooms.ToListAsync();
+            var username = HttpContext.User.Identity?.Name;
+
+            if (username == null)
+            {
+                return BadRequest();
+            }
+
+            var chatRooms = await _applicationDbContext.ChatRooms.Where(cr => cr.Usernames.Contains(username)).ToListAsync();
 
             return Ok(chatRooms);
         }
