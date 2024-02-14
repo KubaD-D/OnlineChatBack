@@ -112,7 +112,7 @@ namespace OnlineChatBack.Controllers
             chatRoom.Messages.Add(newMessage);
             await _applicationDbContext.SaveChangesAsync();
 
-            return Ok();
+            return Ok(new { newMessage });
         }
 
         [HttpPost("{id}/add-user")]
