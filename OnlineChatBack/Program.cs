@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using OnlineChatBack.Hubs;
 using OnlineChatBack.Models;
 using Swashbuckle.AspNetCore.Filters;
 using System.Security.Claims;
@@ -42,6 +43,8 @@ namespace OnlineChatBack
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
             });
+
+            builder.Services.AddSignalR();
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
@@ -133,6 +136,8 @@ namespace OnlineChatBack
             app.UseAuthorization();
 
             app.MapControllers();
+
+            app.MapHub<ChatRoomHub>("/chat-room-hub");
 
             app.Run();
         }
