@@ -115,6 +115,33 @@ namespace OnlineChatBack.Controllers
             return Ok(new { newMessage });
         }
 
+        [HttpGet("{id}/get-users")]
+        public async Task<ActionResult<List<string>>> GetUsersFromChatRoom(Guid id)
+        {
+            var username = HttpContext.User.Identity?.Name;
+
+            if(username == null)
+            {
+                return BadRequest();
+            }
+
+            var chatRoom = await _applicationDbContext.ChatRooms.FirstOrDefaultAsync(cr => cr.Id == id);
+
+            if(chatRoom == null)
+            {
+                return NotFound();
+            }
+
+            if(!chatRoom.Usernames.Contains(username))
+            {
+                return Unauthorized();
+            }
+
+            var users = chatRoom.Usernames;
+
+            return Ok(users);
+        }
+
         [HttpPost("{id}/add-user")]
         public async Task<IActionResult> AddUser(Guid id, UsernameDto usernameRequest)
         {
