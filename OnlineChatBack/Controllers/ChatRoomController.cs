@@ -190,7 +190,7 @@ namespace OnlineChatBack.Controllers
             chatRoom.Usernames.Add(usernameRequest.Username);
             await _applicationDbContext.SaveChangesAsync();
 
-            return Ok();
+            return Ok(new{ usernameRequest.Username });
         }
 
         [HttpDelete("{id}/remove-user")]
@@ -283,6 +283,31 @@ namespace OnlineChatBack.Controllers
             await _applicationDbContext.SaveChangesAsync();
 
             return Ok(chatRoom);
+        }
+
+        [HttpGet("{id}/owner")]
+        public async Task<IActionResult> GetChatRoomOwner(Guid id)
+        {
+            var username = HttpContext.User.Identity?.Name;
+
+            if(username == null)
+            {
+                return BadRequest();
+            }
+
+            var chatRoom = await _applicationDbContext.ChatRooms.FirstOrDefaultAsync(cr => cr.Id == id);
+
+            if (chatRoom == null)
+            {
+                return NotFound();
+            }
+
+            if(!chatRoom.Usernames.Contains(username))
+            {
+                return Unauthorized();
+            }
+
+            return Ok(new { chatRoom.Owner });
         }
 
 

@@ -7,6 +7,7 @@ using Microsoft.OpenApi.Models;
 using OnlineChatBack.Hubs;
 using OnlineChatBack.Models;
 using Swashbuckle.AspNetCore.Filters;
+using System.Net;
 using System.Security.Claims;
 using System.Text;
 
@@ -16,6 +17,7 @@ namespace OnlineChatBack
     {
         public static void Main(string[] args)
         {
+
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
@@ -25,7 +27,7 @@ namespace OnlineChatBack
             {
                 options.AddDefaultPolicy(policy =>
                 {
-                    policy.WithOrigins("http://localhost:3000")
+                    policy.WithOrigins("http://localhost:3000", "http://192.168.0.104:3000", "http://192.168.0.103")
                     .AllowAnyMethod()
                     .AllowCredentials()
                     .AllowAnyHeader();
