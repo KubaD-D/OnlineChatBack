@@ -33,7 +33,26 @@ namespace OnlineChatBack.Hubs
             }
 
             await Groups.AddToGroupAsync(Context.ConnectionId, chatRoom.Id.ToString());
-            await Clients.Group(chatRoomId.ToString()).SendAsync("UserJoined", username);
+            await Clients.Group(chatRoomId.ToString()).SendAsync("UserJoined", username, Context.ConnectionId, chatRoomId);
+        }
+
+        public async Task LeaveRoom(Guid chatRoomId)
+        {
+            var username = Context.User?.Identity?.Name;
+
+            if (username == null)
+            {
+                return;
+            }
+
+            var chatRoom = await _applicationDbContext.ChatRooms.FindAsync(chatRoomId);
+
+            if (chatRoom == null || !chatRoom.Usernames.Contains(username))
+            {
+                return;
+            }
+
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, chatRoomId.ToString());
         }
 
         public async Task SendMessage(Guid chatRoomId, string message)
