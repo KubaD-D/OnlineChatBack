@@ -12,6 +12,17 @@ namespace OnlineChatBack.Models
         {
             
         }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<ChatRoom>()
+                .HasMany(chatRoom => chatRoom.Messages)
+                .WithOne(message => message.ChatRoom)
+                .HasForeignKey(message => message.ChatRoomId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            base.OnModelCreating(modelBuilder);
+        }
     }
 }
     

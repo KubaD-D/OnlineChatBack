@@ -64,6 +64,28 @@ namespace OnlineChatBack.Controllers
             return CreatedAtAction(nameof(GetChatRoom), new {id =  chatRoom.Id}, chatRoom);
         }
 
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteChatRoom(Guid id)
+        {
+            var chatRoom = await _applicationDbContext.ChatRooms.FirstOrDefaultAsync(cr => cr.Id == id);
+            var requestingUser = HttpContext.User.Identity?.Name;
+
+            if (chatRoom == null || requestingUser == null)
+            {
+                return BadRequest();
+            }
+
+            if (requestingUser != chatRoom.Owner)
+            {
+                return Unauthorized();
+            }
+
+            _applicationDbContext.ChatRooms.Remove(chatRoom);
+            await _applicationDbContext.SaveChangesAsync();
+
+            return Ok(new{ id });
+        }
+
         [HttpGet("{id}/messages")]
         public async Task<ActionResult<List<Message>>> GetMessages(Guid id)
         {
@@ -106,7 +128,9 @@ namespace OnlineChatBack.Controllers
             {
                 Sender = sender,
                 TimeSent = DateTime.Now,
-                Content = message.Content
+                Content = message.Content,
+                ChatRoomId = chatRoom.Id,
+                ChatRoom = chatRoom
             };
 
             chatRoom.Messages.Add(newMessage);
@@ -198,28 +222,6 @@ namespace OnlineChatBack.Controllers
             await _applicationDbContext.SaveChangesAsync();
 
             return Ok(new { Username = usernameRequest });
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteChatRoom(Guid id)
-        {
-            var chatRoom = await _applicationDbContext.ChatRooms.FindAsync(id);
-            var requestingUser = HttpContext.User.Identity?.Name;
-
-            if (chatRoom == null || requestingUser == null)
-            {
-                return BadRequest();
-            }
-
-            if (requestingUser != chatRoom.Owner)
-            {
-                return Unauthorized();
-            }
-
-            _applicationDbContext.ChatRooms.Remove(chatRoom);
-            await _applicationDbContext.SaveChangesAsync();
-
-            return Ok();
         }
 
 

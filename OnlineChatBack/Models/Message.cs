@@ -8,7 +8,11 @@ namespace OnlineChatBack.Models
         [JsonIgnore]
         public int Id { get; set; }
         public required string Sender { get; set; }
-        public DateTime TimeSent { get; set; }
+        public required DateTime TimeSent { get; set; }
         public required string Content { get; set; }
+        [JsonIgnore]
+        public required Guid ChatRoomId { get; set; }
+        [JsonIgnore]
+        public required ChatRoom ChatRoom { get; set; }
     }
 }

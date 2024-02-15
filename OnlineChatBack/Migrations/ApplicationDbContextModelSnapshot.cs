@@ -3,7 +3,6 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OnlineChatBack.Models;
 
@@ -12,11 +11,9 @@ using OnlineChatBack.Models;
 namespace OnlineChatBack.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240212221208_SecondMigration")]
-    partial class SecondMigration
+    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -32,6 +29,10 @@ namespace OnlineChatBack.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Owner")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -52,7 +53,7 @@ namespace OnlineChatBack.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<Guid?>("ChatRoomId")
+                    b.Property<Guid>("ChatRoomId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Content")
@@ -109,9 +110,13 @@ namespace OnlineChatBack.Migrations
 
             modelBuilder.Entity("OnlineChatBack.Models.Message", b =>
                 {
-                    b.HasOne("OnlineChatBack.Models.ChatRoom", null)
+                    b.HasOne("OnlineChatBack.Models.ChatRoom", "ChatRoom")
                         .WithMany("Messages")
-                        .HasForeignKey("ChatRoomId");
+                        .HasForeignKey("ChatRoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ChatRoom");
                 });
 
             modelBuilder.Entity("OnlineChatBack.Models.ChatRoom", b =>
