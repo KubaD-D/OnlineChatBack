@@ -169,7 +169,7 @@ namespace OnlineChatBack.Controllers
             return Ok();
         }
 
-        [HttpPost("{id}/remove-user")]
+        [HttpDelete("{id}/remove-user")]
         public async Task<IActionResult> RemoveUser(Guid id, UsernameDto usernameRequest)
         {
             var chatRoom = await _applicationDbContext.ChatRooms.FindAsync(id);
@@ -197,7 +197,7 @@ namespace OnlineChatBack.Controllers
 
             await _applicationDbContext.SaveChangesAsync();
 
-            return Ok();
+            return Ok(new { Username = usernameRequest });
         }
 
         [HttpDelete("{id}")]
