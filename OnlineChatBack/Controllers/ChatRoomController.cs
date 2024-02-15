@@ -194,7 +194,7 @@ namespace OnlineChatBack.Controllers
         }
 
         [HttpDelete("{id}/remove-user")]
-        public async Task<IActionResult> RemoveUser(Guid id, UsernameDto usernameRequest)
+        public async Task<ActionResult<UsernameDto>> RemoveUser(Guid id, UsernameDto usernameRequest)
         {
             var chatRoom = await _applicationDbContext.ChatRooms.FindAsync(id);
             var requestingUser = HttpContext.User.Identity?.Name;
@@ -222,6 +222,67 @@ namespace OnlineChatBack.Controllers
             await _applicationDbContext.SaveChangesAsync();
 
             return Ok(new { Username = usernameRequest });
+        }
+
+        [HttpDelete("{id}/leave")]
+        public async Task<ActionResult<Guid>> LeaveChatRoom(Guid id)
+        {
+            var username = HttpContext.User.Identity?.Name;
+
+            if(username == null)
+            {
+                return BadRequest();
+            }
+
+            var chatRoom = await _applicationDbContext.ChatRooms.FirstOrDefaultAsync(cr => cr.Id == id);
+
+            if (chatRoom == null)
+            {
+                return NotFound();
+            }
+
+            if(!chatRoom.Usernames.Contains(username))
+            {
+                BadRequest();
+            }
+
+            if(username ==  chatRoom.Owner)
+            {
+                return Forbid();
+            }
+
+            chatRoom.Usernames.Remove(username);
+            await _applicationDbContext.SaveChangesAsync();
+
+            return Ok(new { id });
+        }
+
+        [HttpPatch("{id}/rename")]
+        public async Task<ActionResult<ChatRoom>> RenameChatRoom(Guid id, RenameDto renameRequest)
+        {
+            var username = HttpContext.User?.Identity?.Name;
+
+            if(username == null || string.IsNullOrEmpty(renameRequest.NewTitle))
+            {
+                return BadRequest();
+            }
+
+            var chatRoom = _applicationDbContext.ChatRooms.FirstOrDefault(cr => cr.Id == id);
+
+            if (chatRoom == null)
+            {
+                return NotFound();
+            }
+
+            if(username != chatRoom.Owner)
+            {
+                return Unauthorized();
+            }
+
+            chatRoom.Title = renameRequest.NewTitle;
+            await _applicationDbContext.SaveChangesAsync();
+
+            return Ok(chatRoom);
         }
 
 
