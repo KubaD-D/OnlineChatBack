@@ -174,6 +174,16 @@ namespace OnlineChatBack.Controllers
                 return Unauthorized();
             }
 
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None
+            };
+
+            Response.Cookies.Delete("refreshToken", cookieOptions);
+            Response.Cookies.Delete("jwtToken", cookieOptions);
+
             user.RefreshToken = null;
             await _applicationDbContext.SaveChangesAsync();
 
