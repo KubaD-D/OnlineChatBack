@@ -28,7 +28,7 @@ namespace OnlineChatBack.Controllers
 
         [AllowAnonymous]
         [HttpPost("register")]
-        public async Task<IActionResult> Register(RegisterDto register)
+        public async Task<ActionResult<User>> Register(RegisterDto register)
         {
             if(!ModelState.IsValid)
             {
@@ -58,7 +58,7 @@ namespace OnlineChatBack.Controllers
             await _applicationDbContext.Users.AddAsync(newUser);
             await _applicationDbContext.SaveChangesAsync();
 
-            return Ok();
+            return Ok(newUser);
 
         }
 
@@ -215,20 +215,49 @@ namespace OnlineChatBack.Controllers
             _applicationDbContext.Remove(user);
             await _applicationDbContext.SaveChangesAsync();
 
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None
+            };
+
+            Response.Cookies.Delete("refreshToken", cookieOptions);
+            Response.Cookies.Delete("jwtToken", cookieOptions);
+
             return Ok();
         }
 
-        private string? GetBearerToken()
+        [HttpPut("change-password")]
+        public async Task<IActionResult> ChangePassword(PasswordChangeDto request)
         {
-            string? header = HttpContext.Request.Headers["Authorization"];
+            var username = HttpContext.User?.Identity?.Name;
 
-            if(!string.IsNullOrEmpty(header) && header.StartsWith("Bearer "))
+            if(username == null || request.OldPassword == request.NewPassword)
             {
-                string token = header.Substring("Bearer ".Length).Trim();
-                return token;
+                return BadRequest();
             }
 
-            return null;
+            var user = await _applicationDbContext.Users.FirstOrDefaultAsync(user => user.Username == username);
+
+            if(user == null)
+            {
+                return NotFound();
+            }
+
+            if(!BCrypt.Net.BCrypt.EnhancedVerify(request.OldPassword, user.PasswordHash))
+            {
+                return Unauthorized();
+            }
+
+            var newPasswordHash = BCrypt.Net.BCrypt.EnhancedHashPassword(request.NewPassword);
+
+            user.PasswordHash = newPasswordHash;
+
+            await _applicationDbContext.SaveChangesAsync();
+
+            return Ok();
+
         }
 
         private ClaimsPrincipal? GetPrincipalFromExpiredToken(string token)

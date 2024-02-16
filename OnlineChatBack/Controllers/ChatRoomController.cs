@@ -47,7 +47,7 @@ namespace OnlineChatBack.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<ChatRoom>> PostChatRoom(string title)
+        public async Task<ActionResult<ChatRoom>> PostChatRoom(TitleDto titleRequest)
         {
             var username = HttpContext.User.Identity?.Name;
 
@@ -56,7 +56,7 @@ namespace OnlineChatBack.Controllers
                 return BadRequest();
             }
 
-            var chatRoom = new ChatRoom(username, title);
+            var chatRoom = new ChatRoom(username, titleRequest.Title);
 
             _applicationDbContext.ChatRooms.Add(chatRoom);
             await _applicationDbContext.SaveChangesAsync();

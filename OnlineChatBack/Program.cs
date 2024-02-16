@@ -27,7 +27,7 @@ namespace OnlineChatBack
             {
                 options.AddDefaultPolicy(policy =>
                 {
-                    policy.WithOrigins("http://localhost:3000", "http://192.168.0.104:3000", "http://192.168.0.103")
+                    policy.WithOrigins("http://localhost:3000", "http://192.168.0.104:3000")
                     .AllowAnyMethod()
                     .AllowCredentials()
                     .AllowAnyHeader();
@@ -132,7 +132,7 @@ namespace OnlineChatBack
             }
 
             
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
 
             app.UseAuthentication();
             app.UseAuthorization();
