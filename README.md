@@ -1,6 +1,9 @@
 This is the backend of my Online Chat web application.
+<br>
 It uses ASP.NET Core Web API and SignalR for real-time communication.
+<br>
 Authentication is done using JWT Tokens paired with refresh tokens.
+<br>
 Database connection is managed by Entity Framework.
 
 List of endpoints:
