@@ -83,7 +83,7 @@ namespace OnlineChatBack.Controllers
             _applicationDbContext.ChatRooms.Remove(chatRoom);
             await _applicationDbContext.SaveChangesAsync();
 
-            return Ok(new{ id });
+            return Ok();
         }
 
         [HttpGet("{id}/messages")]
@@ -166,7 +166,7 @@ namespace OnlineChatBack.Controllers
             return Ok(users);
         }
 
-        [HttpPost("{id}/add-user")]
+        [HttpPut("{id}/add-user")]
         public async Task<IActionResult> AddUser(Guid id, UsernameDto usernameRequest)
         {
             var chatRoom = await _applicationDbContext.ChatRooms.FindAsync(id);
@@ -190,11 +190,11 @@ namespace OnlineChatBack.Controllers
             chatRoom.Usernames.Add(usernameRequest.Username);
             await _applicationDbContext.SaveChangesAsync();
 
-            return Ok(new{ usernameRequest.Username });
+            return Ok();
         }
 
         [HttpDelete("{id}/remove-user")]
-        public async Task<ActionResult<UsernameDto>> RemoveUser(Guid id, UsernameDto usernameRequest)
+        public async Task<IActionResult> RemoveUser(Guid id, UsernameDto usernameRequest)
         {
             var chatRoom = await _applicationDbContext.ChatRooms.FindAsync(id);
             var requestingUser = HttpContext.User.Identity?.Name;
@@ -221,11 +221,11 @@ namespace OnlineChatBack.Controllers
 
             await _applicationDbContext.SaveChangesAsync();
 
-            return Ok(new { Username = usernameRequest });
+            return Ok();
         }
 
         [HttpDelete("{id}/leave")]
-        public async Task<ActionResult<Guid>> LeaveChatRoom(Guid id)
+        public async Task<IActionResult> LeaveChatRoom(Guid id)
         {
             var username = HttpContext.User.Identity?.Name;
 
@@ -254,11 +254,11 @@ namespace OnlineChatBack.Controllers
             chatRoom.Usernames.Remove(username);
             await _applicationDbContext.SaveChangesAsync();
 
-            return Ok(new { id });
+            return Ok();
         }
 
         [HttpPatch("{id}/rename")]
-        public async Task<ActionResult<ChatRoom>> RenameChatRoom(Guid id, RenameDto renameRequest)
+        public async Task<IActionResult> RenameChatRoom(Guid id, RenameDto renameRequest)
         {
             var username = HttpContext.User?.Identity?.Name;
 
@@ -282,7 +282,7 @@ namespace OnlineChatBack.Controllers
             chatRoom.Title = renameRequest.NewTitle;
             await _applicationDbContext.SaveChangesAsync();
 
-            return Ok(chatRoom);
+            return Ok();
         }
 
         [HttpGet("{id}/owner")]
